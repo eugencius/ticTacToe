@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Player from './components/Player.jsx';
 import GameBoard from './components/GameBoard.jsx';
 import Log from './components/Log.jsx';
+import GameOver from './components/GameOver.jsx';
 import { WINNING_COMBINATIONS } from './winning-combinations.js';
 
 const initialGameBoard = [
@@ -10,10 +11,10 @@ const initialGameBoard = [
   [null, null, null],
 ];
 
-function deriveActivePlayer(gameTurns) {
+function deriveActivePlayer(gameTurn) {
   let currentPlayer = 'X';
 
-  if (gameTurns.length > 0 && gameTurns[0].player === 'X') {
+  if (gameTurn.length > 0 && gameTurn[0].player === 'X') {
     currentPlayer = 'O';
   }
 
@@ -24,7 +25,7 @@ function App() {
   const [gameTurns, setGameTurns] = useState([]);
   const activePlayer = deriveActivePlayer(gameTurns);
 
-  let gameBoard = initialGameBoard;
+  let gameBoard = [...initialGameBoard.map((array) => [...array])];
   for (const turn of gameTurns) {
     const { square, player } = turn;
     const { row, col } = square;
@@ -33,7 +34,6 @@ function App() {
   }
 
   let winner;
-
   for (const combination of WINNING_COMBINATIONS) {
     const firstSquareSymbol =
       gameBoard[combination[0].row][combination[0].column];
@@ -49,9 +49,9 @@ function App() {
     ) {
       winner = firstSquareSymbol;
     }
-
-    console.log(firstSquareSymbol, secondSquareSymbol, thirdSquareSymbol);
   }
+
+  const hasDraw = gameTurns.length === 9 && !winner;
 
   function handleSelectSquare(rowIndex, colIndex) {
     setGameTurns((prevTurns) => {
@@ -64,6 +64,10 @@ function App() {
 
       return updatedTurns;
     });
+  }
+
+  function handleRestart() {
+    setGameTurns([]);
   }
 
   return (
@@ -81,6 +85,10 @@ function App() {
             isActive={activePlayer === 'O'}
           />
         </ol>
+        {(winner || hasDraw) && (
+          <GameOver winner={winner} onRestart={handleRestart} />
+        )}
+
         <GameBoard onSelectSquare={handleSelectSquare} board={gameBoard} />
       </div>
       <Log turns={gameTurns} />
